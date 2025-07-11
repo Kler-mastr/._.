@@ -19,17 +19,27 @@
       position: relative;
     }
 
-    canvas {
+    canvas#matrix {
       position: absolute;
       top: 0;
       left: 0;
       z-index: 0;
     }
 
+    canvas#flash {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 2;
+      pointer-events: none;
+    }
+
     .container {
       text-align: center;
       z-index: 1;
-      animation: glitch 3s infinite ease-in-out;
+      position: relative;
+      color: red;
+      text-shadow: 0 0 15px red;
     }
 
     .qr {
@@ -37,44 +47,27 @@
       height: 300px;
       box-shadow: 0 0 20px red, 0 0 40px rgba(255, 0, 0, 0.4);
       transition: transform 0.5s ease-in-out;
-      cursor: pointer;
+      cursor: default;
+      user-select: none;
     }
 
     .qr:hover {
       transform: scale(1.05) rotate(1deg);
     }
 
-    h1 {
-      margin-bottom: 20px;
-      font-size: 24px;
-      text-shadow: 0 0 10px red;
-    }
-
-    @keyframes glitch {
-      0% { transform: none; }
-      10% { transform: translate(1px, -1px) skew(0.5deg); }
-      20% { transform: translate(-2px, 1px) skew(-0.5deg); }
-      30% { transform: translate(1px, 2px) skew(0.5deg); }
-      40% { transform: translate(0, 0) skew(0deg); }
-      100% { transform: none; }
-    }
   </style>
 </head>
 <body>
   <canvas id="matrix"></canvas>
+  <canvas id="flash"></canvas>
+
   <div class="container">
     <h1>🔻 ACCESS GRANTED 🔻</h1>
-    <img src="qr.png" alt="QR code" class="qr" onclick="closeWindow()">
+    <img src="qr.png" alt="QR code" class="qr">
   </div>
 
-  <!-- Děsivý šum -->
-  <audio id="creepySound" preload="auto" loop>
-    <source src="noise.mp3" type="audio/mpeg">
-    Your browser does not support the audio element.
-  </audio>
-
   <script>
-    // Matrix efekt
+    // MATRIX EFEKT (červený)
     const canvas = document.getElementById("matrix");
     const ctx = canvas.getContext("2d");
     canvas.height = window.innerHeight;
@@ -86,7 +79,7 @@
     let drops = [];
     for (let x = 0; x < columns; x++) drops[x] = 1;
 
-    function draw() {
+    function drawMatrix() {
       ctx.fillStyle = "rgba(0, 0, 0, 0.15)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = "rgba(255, 0, 0, 0.7)";
@@ -102,21 +95,37 @@
         drops[i]++;
       }
     }
+    setInterval(drawMatrix, 33);
 
-    setInterval(draw, 33);
+    // EFEKT BLESKŮ / PROBLESKŮ pomocí druhého canvasu
+    const flashCanvas = document.getElementById("flash");
+    const flashCtx = flashCanvas.getContext("2d");
+    flashCanvas.width = window.innerWidth;
+    flashCanvas.height = window.innerHeight;
 
-    // Spustit zvuk po prvním kliknutí
-    document.addEventListener("click", function () {
-      const audio = document.getElementById("creepySound");
-      audio.volume = 0.4; // můžeš snížit nebo zvýšit hlasitost
-      audio.play().catch(err => console.log("Autoplay blocked:", err));
-    }, { once: true });
+    function flash() {
+      flashCtx.clearRect(0, 0, flashCanvas.width, flashCanvas.height);
+      if (Math.random() > 0.95) {
+        // náhodný blesk (červený světlý obdélník)
+        let x = Math.random() * flashCanvas.width;
+        let y = Math.random() * flashCanvas.height;
+        let w = 100 + Math.random() * 100;
+        let h = 20 + Math.random() * 30;
 
-    // Zavřít okno po kliknutí na QR
-    function closeWindow() {
-      window.open('', '_self', '');
-      window.close();
+        let gradient = flashCtx.createLinearGradient(x, y, x + w, y + h);
+        gradient.addColorStop(0, 'rgba(255, 0, 0, 0.8)');
+        gradient.addColorStop(1, 'rgba(255, 0, 0, 0)');
+
+        flashCtx.fillStyle = gradient;
+        flashCtx.fillRect(x, y, w, h);
+      }
     }
+    setInterval(flash, 100);
+
+    // Note about QR scanning:
+    // Cannot detect QR scan directly.
+    // To "close" page after scan, create QR with URL that loads a special page which closes window or redirects.
+
   </script>
 </body>
 </html>
