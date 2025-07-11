@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>QR Access</title>
   <style>
     body {
@@ -17,7 +17,6 @@
       justify-content: center;
       align-items: center;
       position: relative;
-      animation: flicker 2s infinite;
     }
 
     canvas {
@@ -30,6 +29,7 @@
     .container {
       text-align: center;
       z-index: 1;
+      animation: glitch 3s infinite ease-in-out;
     }
 
     .qr {
@@ -37,6 +37,7 @@
       height: 300px;
       box-shadow: 0 0 20px red, 0 0 40px rgba(255, 0, 0, 0.4);
       transition: transform 0.5s ease-in-out;
+      cursor: pointer;
     }
 
     .qr:hover {
@@ -49,13 +50,13 @@
       text-shadow: 0 0 10px red;
     }
 
-    @keyframes flicker {
-      0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
-        opacity: 1;
-      }
-      20%, 22%, 24%, 55% {
-        opacity: 0.2;
-      }
+    @keyframes glitch {
+      0% { transform: none; }
+      10% { transform: translate(1px, -1px) skew(0.5deg); }
+      20% { transform: translate(-2px, 1px) skew(-0.5deg); }
+      30% { transform: translate(1px, 2px) skew(0.5deg); }
+      40% { transform: translate(0, 0) skew(0deg); }
+      100% { transform: none; }
     }
   </style>
 </head>
@@ -63,47 +64,34 @@
   <canvas id="matrix"></canvas>
   <div class="container">
     <h1>🔻 ACCESS GRANTED 🔻</h1>
-    <img src="qr.png" alt="QR code" class="qr">
+    <img src="qr.png" alt="QR code" class="qr" onclick="closeWindow()">
   </div>
 
-  <audio id="creepySound" loop>
-  <source src="noise.mp3" type="audio/mpeg">
-</audio>
-
-<script>
-  // Přehrát zvuk po prvním kliknutí kamkoli na stránku
-  document.addEventListener("click", function () {
-    const audio = document.getElementById("creepySound");
-    audio.play().catch(err => {
-      console.log("Autoplay failed:", err);
-    });
-  }, { once: true }); // přehraje jen při prvním kliknutí
-</script>
+  <!-- Děsivý šum -->
+  <audio id="creepySound" preload="auto" loop>
+    <source src="noise.mp3" type="audio/mpeg">
+    Your browser does not support the audio element.
+  </audio>
 
   <script>
+    // Matrix efekt
     const canvas = document.getElementById("matrix");
     const ctx = canvas.getContext("2d");
-
     canvas.height = window.innerHeight;
     canvas.width = window.innerWidth;
 
-    let letters = "01#ΞΣΨ¥ɅɅ∇⟁⧫𓂀𓆣";
-    letters = letters.split("");
-
+    let letters = "01#ΞΣΨ¥Ʌ∇⟁⧫𓂀𓆣".split("");
     let fontSize = 14;
     let columns = canvas.width / fontSize;
-
     let drops = [];
-    for (let x = 0; x < columns; x++)
-      drops[x] = 1;
+    for (let x = 0; x < columns; x++) drops[x] = 1;
 
     function draw() {
-      ctx.fillStyle = "rgba(0, 0, 0, 0.15)"; // méně průhledné, lépe se "smaže"
+      ctx.fillStyle = "rgba(0, 0, 0, 0.15)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      ctx.fillStyle = "rgba(255, 0, 0, 0.7)"; // červená, ale průhledná – efektně viditelná
+      ctx.fillStyle = "rgba(255, 0, 0, 0.7)";
       ctx.font = fontSize + "px monospace";
-      
+
       for (let i = 0; i < drops.length; i++) {
         let text = letters[Math.floor(Math.random() * letters.length)];
         ctx.fillText(text, i * fontSize, drops[i] * fontSize);
@@ -116,6 +104,19 @@
     }
 
     setInterval(draw, 33);
+
+    // Spustit zvuk po prvním kliknutí
+    document.addEventListener("click", function () {
+      const audio = document.getElementById("creepySound");
+      audio.volume = 0.4; // můžeš snížit nebo zvýšit hlasitost
+      audio.play().catch(err => console.log("Autoplay blocked:", err));
+    }, { once: true });
+
+    // Zavřít okno po kliknutí na QR
+    function closeWindow() {
+      window.open('', '_self', '');
+      window.close();
+    }
   </script>
 </body>
 </html>
